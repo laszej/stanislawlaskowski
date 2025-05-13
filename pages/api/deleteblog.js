@@ -1,30 +1,26 @@
-import { connectToDatabase } from '../../utils/mongodb';
-import { ObjectId } from 'mongodb';
+import { connectToDatabase } from '../../utils/mongodb'
+import { ObjectId } from 'mongodb'
 
 export default async function handler(req, res) {
+  // Tymczasowo wyłącz autentykację
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  
   if (req.method !== 'DELETE') {
-    return res.status(405).json({ message: 'Method not allowed' });
-  }
-
-  const { id, collection } = req.body;
-
-  if (!id || !collection) {
-    return res.status(422).json({ message: 'Invalid input' });
+    return res.status(405).json({ error: 'Method not allowed' })
   }
 
   try {
-    const { db } = await connectToDatabase();
-    const objectId = new ObjectId(id);
+    const { id } = req.body
+    const { db } = await connectToDatabase()
     
-    const result = await db.collection(collection).deleteOne({ _id: objectId });
+    const result = await db.collection('comments').deleteOne({ 
+      _id: new ObjectId(id) 
+    })
 
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: 'Blog not found' });
-    }
-
-    res.status(200).json({ message: 'Blog deleted successfully' });
+    res.status(200).json({ deletedCount: result.deletedCount })
+    
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Could not delete blog' });
+    console.error('DELETE Error:', error)
+    res.status(500).json({ error: error.message })
   }
 }
