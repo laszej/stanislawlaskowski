@@ -1,14 +1,13 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-}
-
 module.exports = {
-  async rewrites() {
+  reactStrictMode: true,
+  async headers() {
     return [
       {
-        source: '/api/:path*',
-        destination: 'http://127.0.0.1:3000/:path*'
+        source: '/api/(.*)',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,POST,DELETE' }
+        ]
       }
     ]
   }
