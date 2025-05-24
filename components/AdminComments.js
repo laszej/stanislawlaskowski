@@ -1,56 +1,65 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
 
 const AdminComments = ({ collection }) => {
-  const [blogs, setBlogs] = useState([]);
-  const [deleted, setDeleted] = useState(false);
-  const [loadingId, setLoadingId] = useState(null);
+  const [blogs, setBlogs] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [refreshFlag, setRefreshFlag] = useState(false)
 
   useEffect(() => {
-    async function fetchData() {
-      const res = await fetch(`/api/blogs?collection=${collection}`);
-      const data = await res.json();
-      setBlogs(data);
+    const fetchData = async () => {
+      const res = await fetch(`/api/blogs?collection=${collection}`)
+      const data = await res.json()
+      setBlogs(data)
     }
-    fetchData();
-  }, [deleted, collection]);
+    fetchData()
+  }, [collection, refreshFlag])
 
   const handleDelete = async (id) => {
-    setLoadingId(id);
-    try {
-      const response = await fetch('/api/deleteblog', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, collection }),
-      });
+    const confirmed = confirm("Czy na pewno chcesz usunąć ten komentarz?")
+    if (!confirmed) return
 
-      if (!response.ok) throw new Error('Błąd usuwania');
-      setDeleted(prev => !prev);
+    setLoading(true)
+
+    try {
+      const res = await fetch(
+        `/api/deleteblog?id=${id}&collection=${collection}`,
+        { method: 'DELETE' }
+      )
+
+      const data = await res.json()
+      console.log('Usunięto:', data)
+
+      setRefreshFlag((prev) => !prev)
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Błąd przy usuwaniu:', error)
     } finally {
-      setLoadingId(null);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div style={{ margin: "0 auto", maxWidth: "70%", display: "flex", flexDirection: "column-reverse" }}>
-      {blogs.map((blog) => (
-        <div className="card mb-3" key={blog._id}>
-          <div className="card-body">
-            <h5 className="card-title">{blog.title}</h5>
-            <p className="card-text">{blog.content}</p>
-            <button
-              onClick={() => handleDelete(blog._id)}
-              className="btn btn-danger"
-              disabled={loadingId === blog._id}
-            >
-              {loadingId === blog._id ? 'Usuwanie...' : 'Usuń'}
-            </button>
+    <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+      <h3 className="text-center my-4">Komentarze ({collection})</h3>
+      {loading && <p className="text-center text-muted">Trwa operacja...</p>}
+      <div style={{ display: 'flex', flexDirection: 'column-reverse' }}>
+        {blogs.map(blog => (
+          <div className="card mb-3" key={blog._id}>
+            <div className="card-body">
+              <h5 className="card-title">{blog.title}</h5>
+              <p className="card-text">{blog.content}</p>
+              <button
+                className="btn btn-danger"
+                onClick={() => handleDelete(blog._id)}
+                disabled={loading}
+              >
+                🗑️ Usuń
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-  );
-};
+  )
+}
 
-export default AdminComments;
+export default AdminComments
