@@ -64,6 +64,10 @@ const Navbar = () => {
               <Link href="/about" className="nav-link">About</Link>
             </li>
 
+            <li className="nav-item">
+              <Link href="/admin/admin" className="nav-link">Admin</Link>
+            </li>
+
             <div className="nav-item ms-3" id="socials">
               <Link
                 href="https://www.facebook.com/laszej"
